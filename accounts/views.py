@@ -14,5 +14,5 @@ def profile_edit_view(request: HttpRequest, pk: int) -> HttpResponse:
 def profile_delete_view(request: HttpRequest, pk: int) -> HttpResponse:
     return render(request, 'accounts/profile-delete-page.html')
 
-def profile_details_view(request: HttpRequest):
+def profile_details_view(request: HttpRequest, pk: int) -> HttpResponse:
     return render(request, 'accounts/profile-details-page.html')
