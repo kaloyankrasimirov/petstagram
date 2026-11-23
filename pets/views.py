@@ -1,12 +1,9 @@
-from django.db.models import Model
-from django.db.models.query import Prefetch
-from django.http import HttpRequest, HttpResponse
-from django.shortcuts import render, redirect, get_object_or_404
+from django.http import HttpResponseRedirect
 from django.urls import reverse_lazy, reverse
-from django.views.generic.detail import DetailView
-from django.views.generic.edit import CreateView, UpdateView, DeleteView
+from django.views.generic import CreateView, UpdateView, DeleteView, DetailView
+from django.db.models.query import Prefetch
 
-from pets.forms import PetCreateForm, PetEditForm, PetDeleteForm, PetForm
+from pets.forms import PetCreateForm, PetEditForm, PetDeleteForm
 from pets.models import Pet
 from photos.models import Photo
 
@@ -18,17 +15,17 @@ class PetAddView(CreateView):
     template_name = 'pets/pet-add-page.html'
     success_url = reverse_lazy('accounts:details', kwargs={'pk':1})
 
-# def pet_add_view(request: HttpRequest) -> HttpResponse:
-#     form = PetCreateForm(request.POST or None)
-#
-#     if form.is_valid():
-#         form.save()
-#         return redirect('accounts:details', pk=1)
-#
-#     context = {
-#         'form': form,
-#     }
-#     return render(request, 'pets/pet-add-page.html', context)
+    def get_success_url(self) -> str:
+        return reverse(
+            'accounts:details',
+            kwargs={'pk': self.request.user.pk}
+        )
+
+    def form_valid(self, form) -> HttpResponseRedirect:
+        self.object = form.save(commit=False)
+        self.object.user = self.request.user
+        self.object.save()
+        return super().form_valid(form)
 
 
 class PetEditView(UpdateView):
@@ -46,20 +43,6 @@ class PetEditView(UpdateView):
             }
         )
 
-# def pet_edit_view(request: HttpRequest, username: str, pet_slug: str) -> HttpResponse:
-#     pet = get_object_or_404(Pet, slug=pet_slug)
-#     form = PetEditForm(request.POST or None, instance=pet)
-#
-#     if form.is_valid():
-#         pet = form.save()
-#         return redirect('pets:details', username="username", pet_slug=pet.slug)
-#
-#     context = {
-#         'form': form,
-#     }
-#
-#     return render(request, 'pets/pet-edit-page.html', context)
-
 
 class PetDeleteView(DeleteView):
     model = Pet
@@ -73,19 +56,6 @@ class PetDeleteView(DeleteView):
 
 
 
-# def pet_delete_view(request: HttpRequest, username: str, pet_slug: str) -> HttpResponse:
-#     pet = get_object_or_404(Pet, slug=pet_slug)
-#     form = PetDeleteForm(request.POST or None, instance=pet)
-#
-#     if request.method == "POST":
-#         pet.delete()
-#         return redirect('accounts:details', pk=1)
-#
-#     context = {
-#         'form': form,
-#     }
-#     return render(request, 'pets/pet-delete-page.html', context)
-
 class PetDetailView(DetailView):
     queryset = Pet.objects.prefetch_related(
         Prefetch(
@@ -95,21 +65,4 @@ class PetDetailView(DetailView):
     )
     slug_url_kwarg = 'pet_slug'
     template_name = 'pets/pet-details-page.html'
-
-# def pet_details_view(request: HttpRequest, username: str, pet_slug: str) -> HttpResponse:
-#     pet = Pet.objects.prefetch_related(
-#         Prefetch(
-#             'photo_set',
-#             queryset=Photo.objects.prefetch_related('tagged_pets', 'like_set')
-#         )
-#     ).get(slug=pet_slug)
-#
-#     context = {
-#         'pet': pet
-#     }
-#
-#     return render(request, 'pets/pet-details-page.html', context)
-
-
-
 

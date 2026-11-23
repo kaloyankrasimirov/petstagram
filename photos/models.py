@@ -1,8 +1,10 @@
+from django.contrib.auth import get_user_model
 from django.core.validators import MinLengthValidator
 from django.db import models
 
 from photos.validator import FileSizeValidator
 
+UserModel = get_user_model()
 
 class Photo(models.Model):
     photo = models.ImageField(
@@ -29,4 +31,8 @@ class Photo(models.Model):
 
     date_of_publication = models.DateField(
         auto_now=True
+    )
+    user = models.ForeignKey(
+        UserModel,
+        on_delete=models.CASCADE,
     )
